@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>soroban multiplication</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f5f0;
+    --paper: #fffef9;
+    --ink: #1a1a1a;
+    --rule: #d6cfc0;
+    --accent: #2d6a4f;
+    --accent2: #e76f51;
+    --muted: #8a8070;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.07);
+  }
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    padding: 32px 16px 48px;
+    color: var(--ink);
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 4px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 36px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 20px 28px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: var(--shadow);
+  }
+  .ctrl-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ctrl-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ctrl-group input[type=number] {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 70px;
+    padding: 7px 10px;
+    border: 1.5px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .ctrl-group input[type=number]:focus {
+    border-color: var(--accent);
+  }
+  .divider {
+    color: var(--rule);
+    font-size: 1.5rem;
+    padding-bottom: 6px;
+    font-weight: 300;
+  }
+  .btn {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 9px 28px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-generate {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(45,106,79,0.22);
+  }
+  .btn-generate:hover {
+    background: #235c42;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(45,106,79,0.28);
+  }
+  .btn-reveal {
+    background: var(--accent2);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(231,111,81,0.18);
+  }
+  .btn-reveal:hover {
+    background: #c75d3a;
+    transform: translateY(-1px);
+  }
+
+  /* Blocks grid */
+  .blocks {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Single block */
+  .block {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    flex: 1 1 280px;
+    max-width: 340px;
+    padding: 0;
+    overflow: hidden;
+    animation: fadeUp 0.35s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .block:nth-child(2) { animation-delay: 0.07s; }
+  .block:nth-child(3) { animation-delay: 0.14s; }
+
+  .block-header {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 0;
+  }
+
+  /* Problem rows */
+  .problem-list {
+    padding: 8px 0 12px;
+  }
+  .problem-row {
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    border-bottom: 1px solid var(--rule);
+    min-height: 44px;
+  }
+  .problem-row:last-child { border-bottom: none; }
+
+  .num {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .op {
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin: 0 10px;
+  }
+  .eq {
+    font-size: 1.05rem;
+    color: var(--muted);
+    margin: 0 10px 0 auto;
+    flex-shrink: 0;
+  }
+  .answer-wrap {
+    min-width: 80px;
+    text-align: right;
+  }
+  .answer-blank {
+    display: inline-block;
+    border-bottom: 2px solid var(--ink);
+    width: 80px;
+    height: 22px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    border-radius: 2px;
+    position: relative;
+    vertical-align: middle;
+  }
+  .answer-blank:hover {
+    border-color: var(--accent2);
+    background: #fff3ee;
+  }
+  .answer-blank.revealed {
+    border-color: transparent;
+    background: none;
+    cursor: default;
+  }
+  .answer-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.22s;
+    display: block;
+    text-align: right;
+  }
+  .answer-blank.revealed .answer-text {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>multiplication soroban</h1>
+  <p>not a generator</p>
+</header>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <label>Min Digits</label>
+    <input type="number" id="minDigit" value="4" min="1" max="999">
+  </div>
+  <div class="divider">–</div>
+  <div class="ctrl-group">
+    <label>Max Digits</label>
+    <input type="number" id="maxDigit" value="4" min="1" max="999">
+  </div>
+  <button class="btn btn-generate" onclick="generate()">Generate</button>
+  <button class="btn btn-reveal" onclick="revealAll()">Reveal All</button>
+</div>
+
+<div class="blocks" id="blocks"></div>
+
+<script>
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function randomNumber(minDigits, maxDigits) {
+    const digits = randInt(minDigits, maxDigits);
+    const low = Math.pow(10, digits - 1);
+    const high = Math.pow(10, digits) - 1;
+    return digits === 1 ? randInt(1, 9) : randInt(low, high);
+  }
+
+  function formatNum(n) {
+    return n.toLocaleString('en-US');
+  }
+
+  function generate() {
+    let minD = parseInt(document.getElementById('minDigit').value) || 1;
+    let maxD = parseInt(document.getElementById('maxDigit').value) || 4;
+    if (minD < 1) minD = 1;
+    if (maxD < minD) maxD = minD;
+    if (maxD > 9) maxD = 9;
+
+    const container = document.getElementById('blocks');
+    container.innerHTML = '';
+
+    for (let b = 0; b < 3; b++) {
+      const block = document.createElement('div');
+      block.className = 'block';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'block-header';
+      hdr.textContent = `Block ${b + 1}`;
+      block.appendChild(hdr);
+
+      const list = document.createElement('div');
+      list.className = 'problem-list';
+
+      for (let r = 0; r < 13; r++) {
+        const a = randomNumber(minD, maxD);
+        const c = randomNumber(minD, maxD);
+        const product = a * c;
+
+        const row = document.createElement('div');
+        row.className = 'problem-row';
+
+        row.innerHTML = `
+          <span class="num">${formatNum(a)}</span>
+          <span class="op">×</span>
+          <span class="num">${formatNum(c)}</span>
+          <span class="eq">=</span>
+          <div class="answer-wrap">
+            <span class="answer-blank" data-answer="${formatNum(product)}" onclick="reveal(this)">
+              <span class="answer-text"></span>
+            </span>
+          </div>
+        `;
+
+        list.appendChild(row);
+      }
+
+      block.appendChild(list);
+      container.appendChild(block);
+    }
+  }
+
+  function reveal(el) {
+    if (el.classList.contains('revealed')) return;
+    el.classList.add('revealed');
+    el.querySelector('.answer-text').textContent = el.dataset.answer;
+  }
+
+  function revealAll() {
+    document.querySelectorAll('.answer-blank').forEach(reveal);
+  }
+
+  // Init
+  generate();
+</script>
+</body>
+</html>
